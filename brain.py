@@ -1,6 +1,13 @@
 import math
 import random
 
+# lerp
+def scale(value, from_range, to_range):
+    from_min, from_max = from_range
+    to_min, to_max = to_range
+    return (value - from_min) / (from_max - from_min) * (to_max - to_min) + to_min
+
+
 class Neuron:
     def __init__(self, num_inputs):
         # Initialize random weights
@@ -30,21 +37,25 @@ class NeuralNetwork:
 
     def normalize_angle(self, angle):
         # Normalize angle from [-180, 180] to [-1, 1]
-        return angle / 180.0
+        #return angle / 180.0
+        return scale(angle, (-180, 180), (-1, 1))
 
 
     def normalize_distance(self, distance):
         # Normalize distance from [0, 1024] to [0, 1]
-        return distance / 1024.0
+        #return distance / 1024.0
+        return scale(distance, (0, 1024), (0, 1))
 
 
     def denormalize_angle_delta(self, sigmoid_output):
-        tmp = (sigmoid_output * 2) - 1 # [0 to 1] -> [-1 to 1]
-        return tmp * 3.1
+        #tmp = (sigmoid_output * 2) - 1 # [0 to 1] -> [-1 to 1]
+        #return tmp * 3.1
+        return scale(sigmoid_output, (0, 1), (-3.1, 3.1))
 
 
     def denormalize_speed(self, sigmoid_output):
-        return sigmoid_output * 4.0
+        #return sigmoid_output * 4.0
+        return scale(sigmoid_output, (0, 1), (-1.5, 4.0))
 
 
     def forward(self, angle, distance):

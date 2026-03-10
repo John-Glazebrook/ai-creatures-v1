@@ -1,8 +1,10 @@
 import pygame
 from pygame.math import Vector2
 import random
+from population import Population
 from brain import NeuralNetwork
-from creature import Creature
+from creature import Creature, CreatureB
+from place import Place
 from food import get_food_info, Food
 
 # JG - there is more code in your folder [admin/01-creatures/v2]
@@ -36,75 +38,49 @@ def new_creatures(creatures):
     print("----- END NEW CREATURES -----")
     return creatures
 
-def place_creatures(creatures):
-    strategies = [place_in_circle, place_ontop, place_randomly]
-    weights = [10, 30, 60]
-
-    # random.choices returns a list, so we take the first element [0]
-    selected_task = random.choices(strategies, weights=weights, k=1)[0]
-    selected_task(creatures)
-
-
-def place_in_circle(creatures):
-    dist = random.gauss(240, 100)
-    angle = random.randint(0, 360)
-    angle_delta = 360 / POPULATION
-
-    for c in creatures:
-        clock_hand = Vector2(dist, 0).rotate(angle)
-        c.pos = SCREEN_CENTER+clock_hand
-        c.angle = angle
-
-        angle += angle_delta
-
-def place_randomly(creatures):
-    for c in creatures:
-        x = random.randint(10, WIDTH-20)
-        y = random.randint(10, HEIGHT-20)
-        angle = random.randint(0, 360)
-        c.pos = Vector2(x, y)
-        c.angle = angle
-        
-def place_ontop(creatures):
-    x = random.randint(10, WIDTH-20)
-    y = random.randint(10, HEIGHT-20)
-    angle = random.randint(0, 360)
-
-    for c in creatures:    
-        c.pos = Vector2(x, y)
-        c.angle = angle
 
 # Constants
-WIDTH, HEIGHT = 900, 900
+WIDTH, HEIGHT = 1530, 880
+#WIDTH, HEIGHT = 2500, 1400 # demo day
+
 WHITE = (255, 255, 255)
 
-POPULATION = 60
+POPULATION = 211
 MAX_AGE = 432
+MAX_AGE2 = 1024
 SCREEN_CENTER = Vector2(WIDTH // 2, HEIGHT // 2)
 
 
 # Pygame Setup
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF)
 clock = pygame.time.Clock()
+font = pygame.font.SysFont("monospace", 18, bold=True)
 
 
-#dist = random.gauss(240, 100)
-#angle = random.randint(0, 360)
-#angle_delta = 360 / POPULATION
+#creatures = []
+#creaturesb = []
+#for i in range(POPULATION):
+#    c = Creature()
+#    creatures.append(c)
+#    creaturesb.append(CreatureB())
 
-creatures = []
-for i in range(POPULATION):
+pop_a = Population(
+    size=POPULATION,
+    creature_factory=lambda: Creature()
+)
 
-    if i==0:
-        c = Creature(SCREEN_CENTER, (186,85,250))
-    else:
-        c = Creature(SCREEN_CENTER)
+pop_b = Population(
+    size=POPULATION,
+    creature_factory=lambda: CreatureB()
+)
 
-    creatures.append(c)
+populations = [pop_a, pop_b]
 
+place = Place(POPULATION, SCREEN_CENTER, WIDTH, HEIGHT)
 
-place_in_circle(creatures)
+for pop in populations:
+    place.in_circle(pop)
 
 food = Food(WIDTH, HEIGHT)
 generation = 0
@@ -128,21 +104,25 @@ while running:
             tick = 0
 
     # Logic
-    for creature in creatures:
-        direction, distance = get_food_info(creature, food.pos)
-        creature.update(direction, distance)
+    for pop in populations:
+        for creature in pop:
+            direction, distance = get_food_info(creature, food.pos)
+            creature.update(direction, distance)
 
-        if distance < food.size():
-            food.move()
+            if distance < food.size():
+                food.move()
 
-    if tick > MAX_AGE:
+    if (generation < 30 and tick > MAX_AGE) or (tick > MAX_AGE2) and False:
         tick = 0
-        creatures = new_creatures(creatures)
+        for i in range(len(populations)):
+            creatures = new_creatures(populations[i])
        
-        for c in creatures:
-            c.score = 0
+            #for c in creatures:
+            #    c.score = 0
 
-        place_creatures(creatures)
+            populations[i] = creatures
+
+            place.creatures(populations[i])
         generation += 1
 
         if generation % 4 == 0:
@@ -151,13 +131,19 @@ while running:
     if render:
         # Rendering
         screen.fill(WHITE)
-        for c in creatures:
-            c.draw(screen)
+        total_creatures = 0
+        for pop in populations:
+            total_creatures += len(pop)
+            for c in pop:
+                c.draw(screen)
         
         #pygame.draw.line(screen, (250,0,0), ((WIDTH // 2)-20, (HEIGHT // 2)), ((WIDTH // 2)+20, (HEIGHT // 2)), 1)
         #pygame.draw.line(screen, (250,0,0), ((WIDTH // 2), (HEIGHT // 2)-20), ((WIDTH // 2), (HEIGHT // 2)+20), 1)
         food.draw(screen)
         
+        fps = clock.get_fps()
+        fps_surf = font.render(f"FPS: {fps:.1f}  |  Creatures: {total_creatures}, generation: {generation}", True, (0, 0, 0))
+        screen.blit(fps_surf, (8, 8))
         
         pygame.display.flip()
         clock.tick(60) # 60 FPS

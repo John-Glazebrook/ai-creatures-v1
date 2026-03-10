@@ -4,16 +4,16 @@ import random
 from brain import NeuralNetwork
 
 PINK = (255, 105, 180)
+BLUE = (153, 204, 250)
 
 class Creature:
-    def __init__(self, pos:Vector2=Vector2(0,0), colour=PINK):
+    colour = PINK
+    def __init__(self):
         # Start in the middle of the screen
-        self.pos = pos
+        self.pos = Vector2(0,0)
         
         # Random speed between -3 and +8
-        #self.speed = random.uniform(-3, 8)
-        #self.speed = random.uniform(2, 4)
-        self.speed = 0#0.3
+        self.speed = 0
         
         # Random angle in degrees (0 to 360)
         #self.angle = random.uniform(0, 360)
@@ -23,20 +23,15 @@ class Creature:
         self.score = 0
         
         # Create the visual "arrow" (a simple polygon)
-        # We point it to the right (0 degrees) by default
-       # self.original_surf = pygame.Surface((100, 100), pygame.SRCALPHA)
-        ## our nose is at 0, 0
-        #pygame.draw.polygon(self.original_surf, PINK, [(0, 30), (80, 0), (80, 60)])
-
-        # TODO perhaps fix this (32x32 better?) or just draw the triangle by hand?
-        self.original_surf = pygame.Surface((200, 200), pygame.SRCALPHA)
-        center = 100  # Center of the surface
+        # our nose is at 0, 0
+        self.original_surf = pygame.Surface((32, 32), pygame.SRCALPHA)
+        center = 16  # Center of the surface
 
         # nose at center (10, 10), pointing right
-        pygame.draw.polygon(self.original_surf, colour, [
+        pygame.draw.polygon(self.original_surf, self.colour, [
             (center, center),           # nose
             (center - 20, center - 7),
-            (center - 17, center),
+            (center - 14, center),
             (center - 20, center + 7)
         ])
 
@@ -73,3 +68,7 @@ class Creature:
         rotated_surf = pygame.transform.rotate(self.original_surf, -self.angle)
         rect = rotated_surf.get_rect(center=(self.pos.x, self.pos.y))
         screen.blit(rotated_surf, rect)
+
+
+class CreatureB(Creature):
+    colour = BLUE
