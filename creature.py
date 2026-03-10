@@ -11,8 +11,6 @@ class Creature:
     def __init__(self):
         # Start in the middle of the screen
         self.pos = Vector2(0,0)
-        
-        # Random speed between -3 and +8
         self.speed = 0
         
         # Random angle in degrees (0 to 360)
