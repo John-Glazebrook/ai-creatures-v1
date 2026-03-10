@@ -9,35 +9,6 @@ from food import get_food_info, Food
 
 # JG - there is more code in your folder [admin/01-creatures/v2]
 
-def new_creatures(creatures):
-    print("----- NEW CREATURES -----")
-    kids = []
-    tmp = sorted(creatures, key=lambda c: c.score)
-    tmp.reverse()
-    for c in tmp:
-        print(c.score)
-
-    # breed the top 50% of creatures
-    # then replace the bottom 50% with these
-    for i in range(len(tmp) // 2):
-        p1 = tmp[i]
-        p2 = tmp[random.randint(0, len(tmp)//2)]
-            
-        childbrain = NeuralNetwork.breed(p1.brain, p2.brain, mutation_rate=1.2, mutation_range=0.15)
-        c = Creature()
-        c.brain = childbrain
-        kids.append(c)
-
-    creatures = []
-    for i in range(len(tmp) // 2):
-        creatures.append(tmp[i])
-    for kid in kids:
-        creatures.append(kid)
-    for c in creatures:
-        c.score = 0
-    print("----- END NEW CREATURES -----")
-    return creatures
-
 
 # Constants
 WIDTH, HEIGHT = 1530, 880
@@ -58,29 +29,20 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont("monospace", 18, bold=True)
 
 
-#creatures = []
-#creaturesb = []
-#for i in range(POPULATION):
-#    c = Creature()
-#    creatures.append(c)
-#    creaturesb.append(CreatureB())
-
 pop_a = Population(
-    size=POPULATION,
-    creature_factory=lambda: Creature()
+    size              = POPULATION,
+    creature_factory  = lambda: Creature(),
+    placement_manager = Place(POPULATION, SCREEN_CENTER, WIDTH, HEIGHT)
 )
 
 pop_b = Population(
-    size=POPULATION,
-    creature_factory=lambda: CreatureB()
+    size              = POPULATION,
+    creature_factory  = lambda: CreatureB(),
+    placement_manager = Place(POPULATION, SCREEN_CENTER, WIDTH, HEIGHT)
 )
 
 populations = [pop_a, pop_b]
 
-place = Place(POPULATION, SCREEN_CENTER, WIDTH, HEIGHT)
-
-for pop in populations:
-    place.in_circle(pop)
 
 food = Food(WIDTH, HEIGHT)
 generation = 0
@@ -112,17 +74,12 @@ while running:
             if distance < food.size():
                 food.move()
 
-    if (generation < 30 and tick > MAX_AGE) or (tick > MAX_AGE2) and False:
+    if (generation < 30 and tick > MAX_AGE) or (tick > MAX_AGE2):
         tick = 0
         for i in range(len(populations)):
-            creatures = new_creatures(populations[i])
-       
-            #for c in creatures:
-            #    c.score = 0
+            populations[i].new_creatures()
+            populations[i].place()
 
-            populations[i] = creatures
-
-            place.creatures(populations[i])
         generation += 1
 
         if generation % 4 == 0:
