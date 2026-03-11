@@ -5,7 +5,7 @@ from population import Population
 from brain import NeuralNetwork
 from creature import Creature, CreatureB
 from place import Place
-from food import get_food_info, Food
+from food import get_food_info, Berry, BerryClusterer
 
 # JG - there is more code in your folder [admin/01-creatures/v2]
 
@@ -43,8 +43,14 @@ pop_b = Population(
 
 populations = [pop_a, pop_b]
 
+berry_clusterer = BerryClusterer(8, WIDTH, HEIGHT)
+berries = [
+    berry_clusterer.spawn_berry(),
+    berry_clusterer.spawn_berry(),
+    berry_clusterer.spawn_berry(),
+    berry_clusterer.spawn_berry()
+]
 
-food = Food(WIDTH, HEIGHT)
 generation = 0
 tick = 0
 running = True
@@ -62,17 +68,29 @@ while running:
             # Get mouse position
             x, y = pygame.mouse.get_pos()
             print(f"Mouse clicked at: ({x}, {y})")
-            food.pos = Vector2(x, y)
+            berries[0].pos = Vector2(x, y)
             tick = 0
 
     # Logic
     for pop in populations:
         for creature in pop:
-            direction, distance = get_food_info(creature, food.pos)
-            creature.update(direction, distance)
+            closest = []
 
-            if distance < food.size():
-                food.move()
+            target_data = min(
+                # hack the (direction, distance, berry) into a tuple:
+                (get_food_info(creature, b.pos) + (b,) for b in berries), 
+                key=lambda x: x[1], # <-- grab the closest to us
+                default=None
+            )
+
+            if target_data:
+                direction, distance, target_berry = target_data # Unpack
+                creature.update(direction, distance)
+
+                if distance < Berry.SIZE:
+                    # EATEN!
+                    berry_clusterer.move(target_berry)
+
 
     if (generation < 30 and tick > MAX_AGE) or (tick > MAX_AGE2):
         tick = 0
@@ -82,8 +100,8 @@ while running:
 
         generation += 1
 
-        if generation % 4 == 0:
-            food.move()
+        #if generation % 4 == 0:
+        #    food.move()
 
     if render:
         # Rendering
@@ -96,7 +114,8 @@ while running:
         
         #pygame.draw.line(screen, (250,0,0), ((WIDTH // 2)-20, (HEIGHT // 2)), ((WIDTH // 2)+20, (HEIGHT // 2)), 1)
         #pygame.draw.line(screen, (250,0,0), ((WIDTH // 2), (HEIGHT // 2)-20), ((WIDTH // 2), (HEIGHT // 2)+20), 1)
-        food.draw(screen)
+        for berry in berries:
+            berry.draw(screen)
         
         fps = clock.get_fps()
         fps_surf = font.render(f"FPS: {fps:.1f}  |  Creatures: {total_creatures}, generation: {generation}", True, (0, 0, 0))

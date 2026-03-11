@@ -50,7 +50,7 @@ class Creature:
         self.score += self.distance_to_score(distance)
 
 
-    def distance_to_score(self, distance, far_cutoff=512, close_cutoff=30, max_score=16):
+    def distance_to_score(self, distance, far_cutoff=512, close_cutoff=10, max_score=16):
         if distance > far_cutoff:  # No score
             return 0
         if distance < close_cutoff:   # Very close - max score
@@ -68,5 +68,28 @@ class Creature:
         screen.blit(rotated_surf, rect)
 
 
+# KNIFE MISSILE
 class CreatureB(Creature):
     colour = BLUE
+
+    def __init__(self):
+        self.pos = Vector2(0,0)
+        self.speed = 0
+        self.angle = 0
+
+        self.brain = NeuralNetwork(input_size=2, hidden_size=8, output_size=2)
+        self.score = 0
+        
+        # Create the visual "arrow" (a simple polygon)
+        # our nose is at 0, 0
+        self.original_surf = pygame.Surface((32, 32), pygame.SRCALPHA)
+        center = 16  # Center of the surface
+
+        # nose at center (10, 10), pointing right
+        pygame.draw.polygon(self.original_surf, self.colour, [
+            (center, center),           # nose
+            (center - 14, center - 1),
+            (center - 20, center - 7),
+            (center - 20, center + 7),
+            (center - 14, center + 1),
+        ])

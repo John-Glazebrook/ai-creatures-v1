@@ -10,7 +10,8 @@ class Place:
 
     def creatures(self, creatures):
         strategies = [self.in_circle, self.ontop, self.randomly]
-        weights = [10, 30, 60]
+        #weights = [10, 30, 60]
+        weights = [0, 30, 0]
 
         # random.choices returns a list, so we take the first element [0]
         selected_task = random.choices(strategies, weights=weights, k=1)[0]
@@ -41,8 +42,9 @@ class Place:
         x = random.randint(10, self.width-20)
         y = random.randint(10, self.height-20)
         p = Vector2(x, y)
+        print("RANDOM ", p)
         angle = random.randint(0, 360)
 
         for c in creatures:    
-            c.pos = p
+            c.pos = Vector2(x, y)
             c.angle = angle
