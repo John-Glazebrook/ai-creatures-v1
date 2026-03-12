@@ -6,6 +6,12 @@ from brain import NeuralNetwork
 from creature import Creature, CreatureB
 from place import Place
 from food import get_food_info, Berry, BerryClusterer
+#
+#import cProfile, pstats, io
+#
+#pr = cProfile.Profile()
+#pr.enable()
+#
 
 # JG - there is more code in your folder [admin/01-creatures/v2]
 
@@ -100,9 +106,6 @@ while running:
 
         generation += 1
 
-        #if generation % 4 == 0:
-        #    food.move()
-
     if render:
         # Rendering
         screen.fill(WHITE)
@@ -112,8 +115,6 @@ while running:
             for c in pop:
                 c.draw(screen)
         
-        #pygame.draw.line(screen, (250,0,0), ((WIDTH // 2)-20, (HEIGHT // 2)), ((WIDTH // 2)+20, (HEIGHT // 2)), 1)
-        #pygame.draw.line(screen, (250,0,0), ((WIDTH // 2), (HEIGHT // 2)-20), ((WIDTH // 2), (HEIGHT // 2)+20), 1)
         for berry in berries:
             berry.draw(screen)
         
@@ -124,5 +125,17 @@ while running:
         pygame.display.flip()
         clock.tick(60) # 60 FPS
     tick += 1
+
+    #if tick > 60*5:
+    #    break
+
+
+#pr.disable()
+    
+# Print sorted results
+#s = io.StringIO()
+#ps = pstats.Stats(pr, stream=s).strip_dirs().sort_stats('cumulative')
+#ps.print_stats(20)  # top 20 functions
+#print(s.getvalue())
 
 pygame.quit()
